@@ -1,0 +1,18 @@
+login
+sigup
+logout
+nodemaler
+gateway
+
+Menu
+    nonveg
+    veg
+    SIDES & BEVERAGES
+    SIDE ORDERS
+    own choice
+
+track order
+order history
+feedback    
+account
+locate
