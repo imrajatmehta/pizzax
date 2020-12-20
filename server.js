@@ -5,15 +5,16 @@ const handlebarsHelpers = require("handlebars-helpers")();
 const path = require("path")
 const favicon = require("serve-favicon")
 const session = require("express-session")
-
+const flash = require("express-flash")
 // Assets 
 server.use(express.static("public"))
 server.use(session({
     secret: "aasd",
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 * 24 }
+    cookie: { maxAge: 365 * 24 * 60 * 60 * 1000 }
 }))
+server.use(flash());
 // Set Template Engine
 server.set("view engine", "hbs")
 // Set views default path
@@ -32,6 +33,9 @@ const hbs = expHbs.create({
         toStringify: function (cartItemObject) {
 
             return JSON.stringify(cartItemObject)
+        },
+        multiply: function (a, b) {
+            return a * b;
         }
     }
 })
@@ -43,7 +47,7 @@ server.engine("hbs", hbs.engine);
 // Set Favicon means logo in tab
 server.use(favicon(path.join(__dirname, "/public/favicon.ico")))
 
-// database connection
+// database connectionn
 const sql = require("mysql");
 const db = sql.createConnection({
     host: "localhost",
@@ -59,10 +63,17 @@ db.connect((error) => {
 })
 server.use(express.json());
 
-require("./routes/web")(server)
-server.use("*", (req, res) => {
-    res.send("where beta kha jare o ")
+
+// Global middleware for using session in pages 
+server.use((req, res, next) => {
+    res.locals.session = req.session;
+    next();
 })
+
+require("./routes/web")(server)
+// server.use("*", (req, res) => {
+//     res.send("where beta kha jare o ")
+// })
 
 const PORT = process.env.PORT || 3001
 server.listen(PORT, () => {
