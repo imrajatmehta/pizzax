@@ -4,10 +4,16 @@ const expHbs = require("express-handlebars");
 const handlebarsHelpers = require("handlebars-helpers")();
 const path = require("path")
 const favicon = require("serve-favicon")
+const session = require("express-session")
 
 // Assets 
 server.use(express.static("public"))
-
+server.use(session({
+    secret: "aasd",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }
+}))
 // Set Template Engine
 server.set("view engine", "hbs")
 // Set views default path
@@ -22,7 +28,11 @@ const hbs = expHbs.create({
     layoutsDir: path.join(__dirname, "resources/views/layout/"),
 
     helpers: {
-        helpersHbs
+        helpersHbs,
+        toStringify: function (cartItemObject) {
+
+            return JSON.stringify(cartItemObject)
+        }
     }
 })
 
@@ -33,19 +43,28 @@ server.engine("hbs", hbs.engine);
 // Set Favicon means logo in tab
 server.use(favicon(path.join(__dirname, "/public/favicon.ico")))
 
-const PORT = process.env.PORT || 3000
-server.get("/", (req, res) => {
-    res.render("home")
+// database connection
+const sql = require("mysql");
+const db = sql.createConnection({
+    host: "localhost",
+    user: "root",
+    database: "pizzax"
+});
+db.connect((error) => {
+    if (error) {
+        console.log("Error in db connection" + error)
+    } else {
+        console.log("DB connected")
+    }
 })
-server.get("/signin", (req, res) => {
-    res.render("signin", { layout: "auth" });
+server.use(express.json());
+
+require("./routes/web")(server)
+server.use("*", (req, res) => {
+    res.send("where beta kha jare o ")
 })
-server.get("/cart", (req, res) => {
-    res.render("cart")
-})
-server.get("/signup", (req, res) => {
-    res.render("signup", { layout: "auth" })
-})
+
+const PORT = process.env.PORT || 3001
 server.listen(PORT, () => {
     console.log("listening on port 3000")
 }) 
